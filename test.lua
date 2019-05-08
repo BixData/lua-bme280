@@ -44,3 +44,10 @@ it('readSensorID', function()
   local sensorID = bme280.readSensorID(i2c)
   assertEquals(0x60, sensorID)
 end) 
+ 
+it('readUncompensatedTemperature', function()
+  local I2C = periphery.I2C
+  local i2c = I2C('/dev/i2c-1')
+  local temp = bme280.readUncompensatedTemperature(i2c, bme280.AccuracyMode.ULTRA_LOW)
+  assertEquals(true, temp > 0)
+end) 
