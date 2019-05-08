@@ -30,6 +30,14 @@ end
 -- bme280 module
 -- ============================================================================
 
+it('getOversamplingRation', function()
+  assertEquals(1, bme280.getOversamplingRation(bme280.AccuracyMode.ULTRA_LOW))
+  assertEquals(2, bme280.getOversamplingRation(bme280.AccuracyMode.LOW))
+  assertEquals(3, bme280.getOversamplingRation(bme280.AccuracyMode.STANDARD))
+  assertEquals(4, bme280.getOversamplingRation(bme280.AccuracyMode.HIGH))
+  assertEquals(5, bme280.getOversamplingRation(bme280.AccuracyMode.ULTRA_HIGH))
+end)
+ 
 it('readSensorID', function()
   local I2C = periphery.I2C
   local i2c = I2C('/dev/i2c-1')

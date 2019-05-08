@@ -15,7 +15,11 @@ local M = {
   ID_REG = 0xd0
 }
 
-M.readSensorID = function(i2c)
+function M.getOversamplingRation(accuracyMode)
+  return accuracyMode + 1
+end
+
+function M.readSensorID(i2c)
   local msgs = {{M.ID_REG}, {0x00, flags=I2C.I2C_M_RD}}
   i2c:transfer(M.DEVICE, msgs)
   local id = msgs[2][1]
