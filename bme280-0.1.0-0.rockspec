@@ -23,6 +23,6 @@ dependencies = {
 build = {
    type = "builtin",
    modules = {
-      stuart = "src/bme280.lua"
+      bme280 = "src/bme280.lua"
    }
 }
