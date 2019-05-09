@@ -37,6 +37,15 @@ it('getOversamplingRation', function()
   assertEquals(4, bme280.getOversamplingRation(bme280.AccuracyMode.HIGH))
   assertEquals(5, bme280.getOversamplingRation(bme280.AccuracyMode.ULTRA_HIGH))
 end)
+
+it('readCoefficients', function()
+  local I2C = periphery.I2C
+  local i2c = I2C('/dev/i2c-1')
+  local coeff = bme280.readCoefficients(i2c)
+  assertEquals(true, coeff.dig_T1 > 0)
+  assertEquals(true, coeff.dig_T2 > 0)
+  assertEquals(true, coeff.dig_T3 > 0)
+end) 
  
 it('readSensorID', function()
   local I2C = periphery.I2C
@@ -44,10 +53,18 @@ it('readSensorID', function()
   local sensorID = bme280.readSensorID(i2c)
   assertEquals(0x60, sensorID)
 end) 
- 
+
+it('readTemperatureC', function()
+  local I2C = periphery.I2C
+  local i2c = I2C('/dev/i2c-1')
+  local coeff = bme280.readCoefficients(i2c)
+  local temp = bme280.readTemperatureC(i2c, bme280.AccuracyMode.STANDARD, coeff)
+  assertEquals(true, temp > 0)
+end) 
+
 it('readUncompensatedTemperature', function()
   local I2C = periphery.I2C
   local i2c = I2C('/dev/i2c-1')
-  local temp = bme280.readUncompensatedTemperature(i2c, bme280.AccuracyMode.ULTRA_LOW)
+  local temp = bme280.readUncompensatedTemperature(i2c, bme280.AccuracyMode.STANDARD)
   assertEquals(true, temp > 0)
 end) 
