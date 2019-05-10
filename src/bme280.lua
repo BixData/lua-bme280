@@ -139,6 +139,22 @@ function M.readTemperatureC(i2c, accuracyMode, coeff)
   return t
 end
 
+function M.readUncompensatedHumidity(i2c, accuracyMode)
+  local power = 1 -- forced mode
+  local osrt = M.getOversamplingRation(accuracyMode)
+  local msgs = {{M.CTRL_MEAS, bit32.bor(power, bit32.lshift(osrt,5))}}
+  i2c:transfer(M.DEVICE, msgs)
+  M.waitForCompletion(i2c)
+  local osrh = M.getOversamplingRation(M.AccuracyMode.ULTRA_LOW)
+  msgs = {{M.CTRL_HUM, osrh}}
+  i2c:transfer(M.DEVICE, msgs)
+  M.waitForCompletion(i2c)
+  msgs = {{M.HUM_OUT_MSB_LSB}, {0x00, 0x00, flags=I2C.I2C_M_RD}}
+  i2c:transfer(M.DEVICE, msgs)
+  local uh = bit32.lshift(msgs[2][1],8) + msgs[2][2]
+  return uh
+end
+
 function M.readUncompensatedPressure(i2c, accuracyMode)
   local power = 1 -- forced mode
   local osrp = M.getOversamplingRation(accuracyMode)

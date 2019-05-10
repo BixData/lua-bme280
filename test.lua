@@ -70,6 +70,13 @@ it('readTemperatureC', function()
   assertEquals(true, temp > 0)
 end) 
 
+it('readUncompensatedHumidity', function()
+  local I2C = periphery.I2C
+  local i2c = I2C('/dev/i2c-1')
+  local hum = bme280.readUncompensatedHumidity(i2c, bme280.AccuracyMode.STANDARD)
+  assertEquals(true, hum > 0)
+end) 
+
 it('readUncompensatedPressure', function()
   local I2C = periphery.I2C
   local i2c = I2C('/dev/i2c-1')
