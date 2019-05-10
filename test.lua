@@ -47,6 +47,14 @@ it('readCoefficients', function()
   assertEquals(true, coeff.dig_T3 > 0)
 end) 
  
+it('readHumidityRH', function()
+  local I2C = periphery.I2C
+  local i2c = I2C('/dev/i2c-1')
+  local coeff = bme280.readCoefficients(i2c)
+  local hum = bme280.readHumidityRH(i2c, bme280.AccuracyMode.STANDARD, coeff)
+  assertEquals(true, hum > 0)
+end) 
+
 it('readPressurePa', function()
   local I2C = periphery.I2C
   local i2c = I2C('/dev/i2c-1')

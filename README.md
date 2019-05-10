@@ -45,3 +45,22 @@ Sample output:
 ```
 Pressure: 993.260401661 Pa
 ```
+
+### Reading Humidity
+
+```lua
+local bme280 = require 'bme280'
+local periphery = require 'periphery'
+
+local i2c = periphery.I2C('/dev/i2c-1')
+local coeff = bme280.readCoefficients(i2c)
+local humRH = bme280.readHumidityRH(i2c, bme280.AccuracyMode.STANDARD, coeff)
+
+print(string.format('Humidity: %3.9f %%', humRH))
+```
+
+Sample output:
+
+```
+Humidity: 34.844862089 %
+```

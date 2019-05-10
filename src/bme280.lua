@@ -99,6 +99,31 @@ function M.readCoefficients(i2c)
   }
 end
 
+-- reads and calculates humidity in %RH
+function M.readHumidityRH(i2c,accuracyMode, coeff)
+  local ut = M.readUncompensatedTemperature(i2c, accuracyMode)
+  local uh = M.readUncompensatedHumidity(i2c, accuracyMode)
+  local var01 = bit32.rshift(
+    (bit32.rshift(ut,3) - bit32.lshift(coeff.dig_T1,1)) * coeff.dig_T2,
+    11
+  )
+  local var02 = bit32.rshift(
+    bit32.rshift((bit32.rshift(ut,4) - coeff.dig_T1) * (bit32.rshift(ut,4) - coeff.dig_T1), 12) * coeff.dig_T3,
+    14
+  )
+  local tFine = var01 + var02
+  local var_H = tFine - 76800
+  var_H = (uh - (coeff.dig_H4 * 64 + coeff.dig_H5 / 16384 * var_H))
+    * (coeff.dig_H2 / 65536 * (1 + coeff.dig_H6 / 67108864 * var_H * (1 + coeff.dig_H3 / 67108864 * var_H)))
+  var_H = var_H * (1 - coeff.dig_H1 * var_H / 524288)
+  if var_H > 100 then
+    var_H = 100
+  elseif var_H < 0 then
+    var_H = 0
+  end
+  return var_H
+end
+
 -- reads and calculates atmospheric pressure in Pascals
 function M.readPressurePa(i2c, accuracyMode, coeff)
   local ut, up = M.readUncompensatedTemperatureAndPressure(i2c, accuracyMode)
