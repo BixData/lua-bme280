@@ -43,6 +43,12 @@ function M.isBusy(i2c)
   return busy ~= 0, nil
 end
 
+function M.readChar(lsb)
+  local val = lsb
+  if val >= 128 then val = val - 256 end
+  return val
+end
+
 -- read compensation coefficients, unique for each sensor
 function M.readCoefficients(i2c)
   local msgs = {
@@ -53,15 +59,22 @@ function M.readCoefficients(i2c)
   i2c:transfer(M.DEVICE, msgs)
   local coef1 = msgs[2]
 
---  _, err = i2c.WriteBytes([]byte{BME280_COEF_PART1_START})
---  var coef2 [BME280_COEF_PART2_BYTES]byte
---  err = readDataToStruct(i2c, BME280_COEF_PART1_BYTES,
---    binary.LittleEndian, &coef1)
+  msgs = {{M.COEF_PART2_START}, {0x00, flags=I2C.I2C_M_RD}}
+  i2c:transfer(M.DEVICE, msgs)
+  local coef2 = msgs[2]
 
---  _, err = i2c.WriteBytes([]byte{BME280_COEF_PART3_START})
---  var coef3 [BME280_COEF_PART3_BYTES]byte
---  err = readDataToStruct(i2c, BME280_COEF_PART3_BYTES,
---    binary.LittleEndian, &coef3)
+  msgs = {{M.COEF_PART3_START}, {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, flags=I2C.I2C_M_RD}}
+  i2c:transfer(M.DEVICE, msgs)
+  local coef3 = msgs[2]
+
+  local dig_H4 = M.readChar(coef3[4])
+  dig_H4 = bit32.rshift(bit32.lshift(dig_H4,24), 20)
+  dig_H4 = bit32.bor(dig_H4, bit32.band(M.readChar(coef3[5]), 0x0f))
+
+  local dig_H5 = M.readChar(coef3[6])
+  dig_H5 = bit32.rshift(bit32.lshift(dig_H5,24), 20)
+  dig_H5 = bit32.bor(dig_H5, bit32.band(bit32.rshift(M.readChar(coef3[5]),4), 0x0f))
+
   return {
     dig_T1 = M.readUShort(coef1[ 1], coef1[ 2]),
     dig_T2 = M.readShort (coef1[ 3], coef1[ 4]),
@@ -75,7 +88,14 @@ function M.readCoefficients(i2c)
     dig_P6 = M.readShort (coef1[17], coef1[18]),
     dig_P7 = M.readShort (coef1[19], coef1[20]),
     dig_P8 = M.readShort (coef1[21], coef1[22]),
-    dig_P9 = M.readShort (coef1[23], coef1[24])
+    dig_P9 = M.readShort (coef1[23], coef1[24]),
+    
+    dig_H1 = coef2[1],
+    dig_H2 = M.readShort(coef3[1], coef3[2]), 
+    dig_H3 = coef3[3],
+    dig_H4 = dig_H4,
+    dig_H5 = dig_H5,
+    dig_H6 = M.readChar(coef3[7])
   }
 end
 
