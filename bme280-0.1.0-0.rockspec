@@ -16,7 +16,7 @@ description = {
    license = "MIT"
 }
 dependencies = {
-   "bit32 ~> 5.3",
+   "bit32 <= 5.3.2-0",
    "lua >= 5.1, < 5.4",
    "lua-periphery >= 1.1.1"
 }
