@@ -41,10 +41,7 @@ function M.readCoefficients(i2c)
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, flags=I2C.I2C_M_RD}
   }
   i2c:transfer(M.DEVICE, msgs)
-  local coef1 = {}
-  for i=1,23,2 do
-    coef1[#coef1+1] = msgs[2][i] + bit32.lshift(msgs[2][i+1],8)
-  end
+  local coef1 = msgs[2]
 
 --  _, err = i2c.WriteBytes([]byte{BME280_COEF_PART1_START})
 --  var coef2 [BME280_COEF_PART2_BYTES]byte
@@ -55,9 +52,20 @@ function M.readCoefficients(i2c)
 --  var coef3 [BME280_COEF_PART3_BYTES]byte
 --  err = readDataToStruct(i2c, BME280_COEF_PART3_BYTES,
 --    binary.LittleEndian, &coef3)
-
   return {
-    dig_T1 = coef1[1], dig_T2 = coef1[2], dig_T3 = coef1[3]
+    dig_T1 = M.readUShort(coef1[ 1], coef1[ 2]),
+    dig_T2 = M.readShort (coef1[ 3], coef1[ 4]),
+    dig_T3 = M.readShort (coef1[ 5], coef1[ 6]),
+    
+    dig_P1 = M.readUShort(coef1[ 7], coef1[ 8]),
+    dig_P2 = M.readShort (coef1[ 9], coef1[10]),
+    dig_P3 = M.readShort (coef1[11], coef1[12]),
+    dig_P4 = M.readShort (coef1[13], coef1[14]),
+    dig_P5 = M.readShort (coef1[15], coef1[16]),
+    dig_P6 = M.readShort (coef1[17], coef1[18]),
+    dig_P7 = M.readShort (coef1[19], coef1[20]),
+    dig_P8 = M.readShort (coef1[21], coef1[22]),
+    dig_P9 = M.readShort (coef1[23], coef1[24])
   }
 end
 
@@ -66,6 +74,16 @@ function M.readSensorID(i2c)
   i2c:transfer(M.DEVICE, msgs)
   local id = msgs[2][1]
   return id
+end
+
+function M.readShort(lsb, msb)
+  local val = lsb + msb * 256
+  if val >= 32768 then val = val - 65536 end
+  return val
+end
+
+function M.readUShort(lsb, msb)
+  return lsb + msb * 256
 end
 
 -- reads and calculates temperature in C

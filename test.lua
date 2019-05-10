@@ -68,3 +68,13 @@ it('readUncompensatedTemperature', function()
   local temp = bme280.readUncompensatedTemperature(i2c, bme280.AccuracyMode.STANDARD)
   assertEquals(true, temp > 0)
 end) 
+
+it('readUShort', function()
+  local msb, lsb = 109, 231
+  assertEquals(28135, bme280.readUShort(lsb, msb))
+end) 
+
+it('readShort', function()
+  local msb, lsb = 215, 84
+  assertEquals(-10412, bme280.readShort(lsb, msb))
+end) 
