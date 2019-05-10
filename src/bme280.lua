@@ -33,6 +33,16 @@ function M.getOversamplingRation(accuracyMode)
   return accuracyMode + 1
 end
 
+-- reads register 0xF3 for "busy" flag, according to sensor specification
+function M.isBusy(i2c)
+  -- Check flag to know status of calculation, according
+  -- to specification about SCO (Start of conversion) flag
+  local msgs = {{M.STATUS}, {0x00, flags=I2C.I2C_M_RD}}
+  i2c:transfer(M.DEVICE, msgs)
+  local busy = bit32.band(msgs[2][1], 0x8)
+  return busy ~= 0, nil
+end
+
 -- read compensation coefficients, unique for each sensor
 function M.readCoefficients(i2c)
   local msgs = {
@@ -88,9 +98,7 @@ end
 
 -- reads and calculates temperature in C
 function M.readTemperatureC(i2c, accuracyMode, coeff)
-  local ut, err = M.readUncompensatedTemperature(i2c, accuracyMode)
-  if err ~= nil then return 0, err end
-  
+  local ut = M.readUncompensatedTemperature(i2c, accuracyMode)
   local var1 = bit32.rshift(
     (bit32.rshift(ut,3) - bit32.lshift(coeff.dig_T1,1)) * coeff.dig_T2,
     11
@@ -101,7 +109,19 @@ function M.readTemperatureC(i2c, accuracyMode, coeff)
   )
   local tFine = var1 + var2
   local t = bit32.rshift((tFine*5 + 128), 8) / 100
-  return t, nil
+  return t
+end
+
+function M.readUncompensatedPressure(i2c, accuracyMode)
+  local power = 1 -- forced mode
+  local osrp = M.getOversamplingRation(accuracyMode)
+  local msgs = {{M.CTRL_MEAS, bit32.bor(power, bit32.lshift(osrp,2))}}
+  i2c:transfer(M.DEVICE, msgs)
+  M.waitForCompletion(i2c)
+  msgs = {{M.PRESS_OUT_MSB_LSB_XLSB}, {0x00, 0x00, 0x00, flags=I2C.I2C_M_RD}}
+  i2c:transfer(M.DEVICE, msgs)
+  local up = bit32.lshift(msgs[2][1],12) + bit32.lshift(msgs[2][2],4) + bit32.rshift(bit32.band(msgs[2][3],0xf0),4)
+  return up
 end
 
 function M.readUncompensatedTemperature(i2c, accuracyMode)
@@ -112,7 +132,41 @@ function M.readUncompensatedTemperature(i2c, accuracyMode)
   msgs = {{M.TEMP_OUT_MSB_LSB_XLSB}, {0x00, 0x00, 0x00, flags=I2C.I2C_M_RD}}
   i2c:transfer(M.DEVICE, msgs)
   local ut = bit32.lshift(msgs[2][1],12) + bit32.lshift(msgs[2][2],4) + bit32.rshift(bit32.band(msgs[2][3],0xf0),4) 
-  return ut, nil
+  return ut
+end
+
+function M.readUncompensatedTemperatureAndPressure(i2c, accuracyMode)
+  local power = 1 -- forced mode
+  local osrt = M.getOversamplingRation(M.AccuracyMode.STANDARD)
+  local osrp = M.getOversamplingRation(accuracyMode)
+  local msgs = {{M.CTRL_MEAS, bit32.bor(bit32.bor(power, bit32.lshift(osrt,5)), bit32.lshift(osrp,2))}}
+  i2c:transfer(M.DEVICE, msgs)
+  M.waitForCompletion(i2c)
+  msgs = {{M.TEMP_OUT_MSB_LSB_XLSB}, {0x00, 0x00, 0x00, flags=I2C.I2C_M_RD}}
+  i2c:transfer(M.DEVICE, msgs)
+  local ut = bit32.lshift(msgs[2][1],12) + bit32.lshift(msgs[2][2],4) + bit32.rshift(bit32.band(msgs[2][3],0xf0),4) 
+  msgs = {{M.PRESS_OUT_MSB_LSB_XLSB}, {0x00, 0x00, 0x00, flags=I2C.I2C_M_RD}}
+  i2c:transfer(M.DEVICE, msgs)
+  local up = bit32.lshift(msgs[2][1],12) + bit32.lshift(msgs[2][2],4) + bit32.rshift(bit32.band(msgs[2][3],0xf0),4)
+  return ut, up
+end
+
+function M.sleep(secs)
+  local has_luasocket, socket = pcall(require, 'socket')
+  if has_luasocket then
+    return socket.sleep(secs)
+  end
+  -- cannot sleep
+end
+
+-- Wait until sensor completes measurements and calculations, otherwise return on timeout
+function M.waitForCompletion(i2c)
+  for i=1,10 do
+    local busy = M.isBusy(i2c)
+    if not busy then return false end
+    M.sleep(.005)
+  end
+  return true
 end
 
 return M

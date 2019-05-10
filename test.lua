@@ -62,11 +62,26 @@ it('readTemperatureC', function()
   assertEquals(true, temp > 0)
 end) 
 
+it('readUncompensatedPressure', function()
+  local I2C = periphery.I2C
+  local i2c = I2C('/dev/i2c-1')
+  local press = bme280.readUncompensatedPressure(i2c, bme280.AccuracyMode.STANDARD)
+  assertEquals(true, press > 0)
+end) 
+
 it('readUncompensatedTemperature', function()
   local I2C = periphery.I2C
   local i2c = I2C('/dev/i2c-1')
   local temp = bme280.readUncompensatedTemperature(i2c, bme280.AccuracyMode.STANDARD)
   assertEquals(true, temp > 0)
+end) 
+
+it('readUncompensatedTemperatureAndPressure', function()
+  local I2C = periphery.I2C
+  local i2c = I2C('/dev/i2c-1')
+  local temp, press = bme280.readUncompensatedTemperatureAndPressure(i2c, bme280.AccuracyMode.STANDARD)
+  assertEquals(true, temp > 0)
+  assertEquals(true, press > 0)
 end) 
 
 it('readUShort', function()
