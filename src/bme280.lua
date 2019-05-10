@@ -79,6 +79,33 @@ function M.readCoefficients(i2c)
   }
 end
 
+-- reads and calculates atmospheric pressure in Pascals
+function M.readPressurePa(i2c, accuracyMode, coeff)
+  local ut, up = M.readUncompensatedTemperatureAndPressure(i2c, accuracyMode)
+  local var01 = bit32.rshift(
+    (bit32.rshift(ut,3) - bit32.lshift(coeff.dig_T1,1)) * coeff.dig_T2,
+    11
+  )
+  local var02 = bit32.rshift(
+    bit32.rshift((bit32.rshift(ut,4) - coeff.dig_T1) * (bit32.rshift(ut,4) - coeff.dig_T1), 12) * coeff.dig_T3,
+    14
+  )
+  local tFine = var01 + var02
+  local var1 = tFine / 2 - 64000
+  local var2 = var1 * var1 * coeff.dig_P6 / 32768
+  var2 = var2 + var1 * coeff.dig_P5 * 2
+  var2 = var2 / 4 + coeff.dig_P4 * 65536
+  var1 = (var1 * var1 * coeff.dig_P3 / 524288 + var1 * coeff.dig_P2) / 524288
+  var1 = (1 + var1 / 32768) * coeff.dig_P1
+  if var1 == 0 then return 0 end
+  local p = 1048576 - up
+  p = ((p - var2 / 4096) * 6250) / var1
+  var1 = coeff.dig_P9 * p * p / 2147483648
+  var2 = p * coeff.dig_P8 / 32768
+  p = p + (var1 + var2 + coeff.dig_P7) / 16
+  return p / 100
+end
+
 function M.readSensorID(i2c)
   local msgs = {{M.ID_REG}, {0x00, flags=I2C.I2C_M_RD}}
   i2c:transfer(M.DEVICE, msgs)

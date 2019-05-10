@@ -26,3 +26,22 @@ Sample output:
 ```
 Temperature: 27.92 C
 ```
+
+### Reading Pressure
+
+```lua
+local bme280 = require 'bme280'
+local periphery = require 'periphery'
+
+local i2c = periphery.I2C('/dev/i2c-1')
+local coeff = bme280.readCoefficients(i2c)
+local pressPa = bme280.readPressurePa(i2c, bme280.AccuracyMode.STANDARD, coeff)
+
+print(string.format('Pressure: %5.9f Pa', pressPa))
+```
+
+Sample output:
+
+```
+Pressure: 993.260401661 Pa
+```
