@@ -6,6 +6,16 @@ A [lua-periphery](https://github.com/vsergeev/lua-periphery) based driver for th
 
 This is a port of Denis Dyakov's [go-bsbmp](https://github.com/d2r2/go-bsbmp) driver (MIT License), with portions contributed by Iron Heart Consulting LLC.
 
+## Installing
+
+If you are on Linux:
+
+```sh
+$ luarocks install bme280
+```
+
+Otherwise, you can use the Lua module from within a Go app via [glua-periphery](https://github.com/BixData/gluaperiphery).
+
 ## Usage
 
 ### Reading Temperature
