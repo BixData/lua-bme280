@@ -1,8 +1,8 @@
 package = "bme280"
-version = "0.1.0-1"
+version = "0.1.0-2"
 source = {
-   url = "https://github.com/BixData/lua-bme280/archive/0.1.0-1.tar.gz",
-   dir = "bme280-0.1.0-1"
+   url = "https://github.com/BixData/lua-bme280/archive/0.1.0-2.tar.gz",
+   dir = "lua-bme280-0.1.0-2"
 }
 description = {
    summary = "BME280 I²C Atmospheric Sensor driver",
