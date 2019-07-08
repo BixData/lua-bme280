@@ -1,7 +1,7 @@
 package = "bme280"
 version = "0.1.0-2"
 source = {
-   url = "https://github.com/BixData/lua-bme280/archive/0.1.0-2.tar.gz",
+   url = "https://github.com/nubix-io/lua-bme280/archive/0.1.0-2.tar.gz",
    dir = "lua-bme280-0.1.0-2"
 }
 description = {
@@ -11,7 +11,7 @@ description = {
      It features a very accurate pressure sensor, and an associated temperature sensor
      which helps calibrate pressure readings.
    ]],
-   homepage = "https://github.com/BixData/lua-bme280",
+   homepage = "https://github.com/nubix-io/lua-bme280",
    maintainer = "David Rauschenbach",
    license = "MIT"
 }
