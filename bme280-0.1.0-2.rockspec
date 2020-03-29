@@ -12,7 +12,7 @@ description = {
      which helps calibrate pressure readings.
    ]],
    homepage = "https://github.com/nubix-io/lua-bme280",
-   maintainer = "David Rauschenbach",
+   maintainer = "Nubix Inc.",
    license = "MIT"
 }
 dependencies = {
